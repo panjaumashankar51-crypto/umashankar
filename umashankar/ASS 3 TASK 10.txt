@@ -1,0 +1,34 @@
+#include <stdio.h>
+
+// Function to swap two numbers using pointers
+void swap(int *a, int *b) {
+    int temp = *a;   // dereference to get value
+    *a = *b;
+    *b = temp;
+}
+
+int main() {
+    int x = 10, y = 20;
+
+    printf("Before swap:\n");
+    printf("x = %d, address = %p\n", x, (void*)&x);
+    printf("y = %d, address = %p\n", y, (void*)&y);
+
+    // Swap using pointers
+    swap(&x, &y);
+
+    printf("\nAfter swap:\n");
+    printf("x = %d, address = %p\n", x, (void*)&x);
+    printf("y = %d, address = %p\n", y, (void*)&y);
+
+    // Traverse array using pointers
+    int arr[5] = {1, 2, 3, 4, 5};
+    int *ptr = arr;  // pointer to first element
+
+    printf("\nTraversing array using pointers:\n");
+    for (int i = 0; i < 5; i++) {
+        printf("Value = %d, Address = %p\n", *(ptr + i), (void*)(ptr + i));
+    }
+
+    return 0;
+}
