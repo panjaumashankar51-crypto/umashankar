@@ -1,0 +1,7 @@
+# Pattern Printer Challenge 5
+rows = 5
+
+for i in range(1, rows + 1):       # Outer loop for rows
+    for j in range(i):             # Inner loop for stars
+        print("*", end="")         # Print stars without newline
+    print()                        # Move to next line
