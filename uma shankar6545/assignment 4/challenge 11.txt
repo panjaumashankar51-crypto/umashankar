@@ -1,0 +1,124 @@
+import json
+import os
+from datetime import datetime
+
+FILE_NAME = "bank.json"
+
+# ---------------- Account Class ----------------
+class Account:
+    def __init__(self, acc_no, balance=0):
+        self.acc_no = acc_no
+        self._balance = balance   # encapsulated
+        self.history = []
+
+    def deposit(self, amount):
+        if amount <= 0:
+            print("Invalid deposit amount.")
+            return
+        self._balance += amount
+        self._add_history(f"Deposited {amount}")
+
+    def withdraw(self, amount):
+        if amount <= 0 or amount > self._balance:
+            print("Invalid withdrawal.")
+            return
+        self._balance -= amount
+        self._add_history(f"Withdrew {amount}")
+
+    def transfer(self, target, amount):
+        if amount <= 0 or amount > self._balance:
+            print("Transfer failed.")
+            return
+        self._balance -= amount
+        target._balance += amount
+        self._add_history(f"Transferred {amount} to {target.acc_no}")
+        target._add_history(f"Received {amount} from {self.acc_no}")
+
+    def _add_history(self, message):
+        self.history.append(f"{datetime.now()} - {message}")
+
+    def get_balance(self):
+        return self._balance
+
+    def to_dict(self):
+        return {
+            "balance": self._balance,
+            "history": self.history
+        }
+
+# ---------------- Savings Account ----------------
+class SavingsAccount(Account):
+    def __init__(self, acc_no, balance=0, min_balance=500):
+        super().__init__(acc_no, balance)
+        self.min_balance = min_balance
+
+    def withdraw(self, amount):
+        if self._balance - amount < self.min_balance:
+            print("Minimum balance violation.")
+            return
+        super().withdraw(amount)
+
+# ---------------- User Class ----------------
+class User:
+    def __init__(self, name):
+        self.name = name
+        self.accounts = {}
+
+    def add_account(self, account):
+        self.accounts[account.acc_no] = account
+
+    def to_dict(self):
+        return {
+            "accounts": {k: v.to_dict() for k, v in self.accounts.items()}
+        }
+
+# ---------------- File Handling ----------------
+def save_users(users):
+    with open(FILE_NAME, "w") as f:
+        json.dump({u: users[u].to_dict() for u in users}, f, indent=4)
+
+def load_users():
+    if not os.path.exists(FILE_NAME):
+        return {}
+
+    with open(FILE_NAME, "r") as f:
+        data = json.load(f)
+
+    users = {}
+    for uname, udata in data.items():
+        user = User(uname)
+        for acc_no, acc in udata["accounts"].items():
+            account = Account(acc_no, acc["balance"])
+            account.history = acc["history"]
+            user.add_account(account)
+        users[uname] = user
+    return users
+
+# ---------------- Main Program ----------------
+users = load_users()
+
+# Sample users and accounts
+alice = users.get("Alice", User("Alice"))
+bob = users.get("Bob", User("Bob"))
+
+acc1 = SavingsAccount("SA1001", 2000)
+acc2 = Account("CA2001", 1500)
+
+alice.add_account(acc1)
+bob.add_account(acc2)
+
+acc1.deposit(500)
+acc1.transfer(acc2, 300)
+acc2.withdraw(200)
+
+users["Alice"] = alice
+users["Bob"] = bob
+
+save_users(users)
+
+print("Alice Balance:", acc1.get_balance())
+print("Bob Balance:", acc2.get_balance())
+
+print("\nTransaction History (Alice):")
+for h in acc1.history:
+    print(h)

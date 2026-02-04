@@ -1,0 +1,58 @@
+import threading
+import time
+import queue
+import signal
+import sys
+from datetime import datetime
+
+# Priority Queue (lower number = higher priority)
+task_queue = queue.PriorityQueue()
+shutdown_event = threading.Event()
+
+# ---------------- Task Function ----------------
+def task_worker():
+    while not shutdown_event.is_set():
+        try:
+            priority, task_name, duration = task_queue.get(timeout=1)
+        except queue.Empty:
+            continue
+
+        start_time = datetime.now()
+        print(f"[START] {task_name} | Time: {start_time}")
+
+        time.sleep(duration)
+
+        end_time = datetime.now()
+        print(f"[END]   {task_name} | Time: {end_time}")
+
+        task_queue.task_done()
+
+# ---------------- Graceful Shutdown ----------------
+def shutdown_handler(sig, frame):
+    print("\nShutting down scheduler gracefully...")
+    shutdown_event.set()
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, shutdown_handler)
+
+# ---------------- Main Program ----------------
+def main():
+    # Create worker threads
+    threads = []
+    for _ in range(3):
+        t = threading.Thread(target=task_worker)
+        t.daemon = True
+        t.start()
+        threads.append(t)
+
+    # Add tasks (priority, name, duration)
+    task_queue.put((1, "High Priority Task", 2))
+    task_queue.put((3, "Low Priority Task", 4))
+    task_queue.put((2, "Medium Priority Task", 3))
+    task_queue.put((1, "Urgent Task", 1))
+
+    # Wait for tasks to complete
+    task_queue.join()
+    print("All tasks completed.")
+
+main()

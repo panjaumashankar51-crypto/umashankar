@@ -1,0 +1,60 @@
+import requests
+import json
+import os
+import argparse
+import time
+
+CACHE_FILE = "cache.json"
+CACHE_TIME = 60  # seconds
+
+# Fetch data from API
+def fetch_data(url):
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print("Request failed:", e)
+        return None
+
+# Load cache
+def load_cache():
+    if os.path.exists(CACHE_FILE):
+        with open(CACHE_FILE, "r") as f:
+            return json.load(f)
+    return None
+
+# Save cache
+def save_cache(data):
+    with open(CACHE_FILE, "w") as f:
+        json.dump({"time": time.time(), "data": data}, f, indent=4)
+
+# Check cache validity
+def is_cache_valid(cache):
+    return time.time() - cache["time"] < CACHE_TIME
+
+
+# Main Program
+parser = argparse.ArgumentParser(description="REST API Client")
+parser.add_argument("--limit", type=int, default=5, help="Number of items to display")
+args = parser.parse_args()
+
+url = "https://jsonplaceholder.typicode.com/posts"
+
+cache = load_cache()
+
+if cache and is_cache_valid(cache):
+    print("Using cached data...")
+    data = cache["data"]
+else:
+    print("Fetching data from API...")
+    data = fetch_data(url)
+    if data:
+        save_cache(data)
+
+# Display data
+if data:
+    print("\n--- API DATA ---")
+    for item in data[:args.limit]:
+        print(f"\nID: {item['id']}")
+        print("Title:", item['title'])

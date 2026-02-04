@@ -1,0 +1,33 @@
+import requests
+from bs4 import BeautifulSoup
+import csv
+
+def scrape_titles(url):
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()   # handles HTTP errors
+    except requests.exceptions.RequestException as e:
+        print("Error:", e)
+        return []
+
+    soup = BeautifulSoup(response.text, "html.parser")
+    titles = []
+
+    for tag in soup.find_all("h1"):
+        titles.append(tag.get_text(strip=True))
+
+    return titles
+
+
+def save_to_csv(all_titles):
+    with open("titles.csv", "w", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        writer.writerow(["Page URL", "Title"])
+
+        for url, titles in all_titles.items():
+            for title in titles:
+                writer.writerow([url, title])
+
+
+# Main Program
+base_url = "https://example.com_
