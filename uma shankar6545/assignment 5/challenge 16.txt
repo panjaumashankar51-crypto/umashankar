@@ -1,0 +1,18 @@
+from collections import defaultdict
+
+log_file = "access.log"
+
+ip_count = defaultdict(int)
+requests_per_minute = defaultdict(int)
+error_count = 0
+
+with open(log_file, "r") as file:
+    for line in file:
+        parts = line.split()
+
+        # 1. IP Address
+        ip = parts[0]
+        ip_count[ip] += 1
+
+        # 2. Timestamp (minute-level)
+        time_part = parts[3][1:]           # r_

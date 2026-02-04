@@ -1,0 +1,31 @@
+import threading
+
+num = 1
+MAX = 10
+lock = threading.Lock()
+
+def print_odd():
+    global num
+    while num <= MAX:
+        with lock:
+            if num % 2 == 1:
+                print("Odd Thread:", num)
+                num += 1
+
+def print_even():
+    global num
+    while num <= MAX:
+        with lock:
+            if num % 2 == 0:
+                print("Even Thread:", num)
+                num += 1
+
+
+t1 = threading.Thread(target=print_odd)
+t2 = threading.Thread(target=print_even)
+
+t1.start()
+t2.start()
+
+t1.join()
+t2.join()

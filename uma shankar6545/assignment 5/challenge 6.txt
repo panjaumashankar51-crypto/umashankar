@@ -1,0 +1,19 @@
+s = "({[]})"
+
+stack = []
+mapping = {')': '(', '}': '{', ']': '['}
+
+valid = True
+
+for ch in s:
+    if ch in mapping.values():          # opening bracket
+        stack.append(ch)
+    elif ch in mapping:                 # closing bracket
+        if not stack or stack.pop() != mapping[ch]:
+            valid = False
+            break
+
+if valid and not stack:
+    print("Valid")
+else:
+    print("Invalid")
